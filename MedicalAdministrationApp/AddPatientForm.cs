@@ -5,9 +5,9 @@ using System.Windows.Forms;
 
 namespace MedicalAdministrationApp
 {
-    public partial class Form1 : Form
+    public partial class AddPatientForm : Form
     {
-        public Form1()
+        public AddPatientForm()
         {
             InitializeComponent();
         }
@@ -20,8 +20,10 @@ namespace MedicalAdministrationApp
             emailTextBox.Text = "";
             healthCareNumberTextBox.Text = "";
             healthCareSystemComboBox.Text = "";
+            healthCareSystemNumberTextBox.Text = "";
             jobTextBox.Text = "";
             fiscalNumberTextBox.Text = "";
+            birthDatePicker.CustomFormat = " ";
         }
 
         private void addPatientButton_Click(object sender, EventArgs e)
@@ -30,13 +32,18 @@ namespace MedicalAdministrationApp
             string morada = addressTextBox.Text;
             string contacto = contactTextBox.Text;
             string email = emailTextBox.Text;
-            int numeroUtente = Convert.ToInt32(healthCareNumberTextBox.Text);
+            string numeroUtente = healthCareNumberTextBox.Text;
             string subSistema = healthCareSystemComboBox.Text;
+            string numeroSubSistema = healthCareSystemNumberTextBox.Text;
             DateTime dataNascimento = birthDatePicker.Value.Date;
             string profissao = jobTextBox.Text;
             int nif = Convert.ToInt32(fiscalNumberTextBox.Text);
-            FinalDB.InsertClient(nome, morada, contacto, email,
-                numeroUtente, subSistema, dataNascimento, profissao, nif);
+            if (dataNascimento == birthDatePicker.MinDate)
+                FinalDB.InsertClient(nome, morada, contacto, email,
+                    numeroUtente, subSistema, numeroSubSistema, profissao, nif);
+            else
+                FinalDB.InsertClient(nome, morada, contacto, email,
+                    numeroUtente, subSistema, numeroSubSistema, profissao, nif, dataNascimento);
         }
 
         private void searchPatientsButton_Click(object sender, EventArgs e)
@@ -48,13 +55,14 @@ namespace MedicalAdministrationApp
             string email = emailTextBox.Text;
             string numeroUtente = healthCareNumberTextBox.Text;
             string subSistema = healthCareSystemComboBox.Text;
+            string numeroSubSistema = healthCareSystemNumberTextBox.Text;
             DateTime dataNascimento = birthDatePicker.Value.Date;
             string profissao = jobTextBox.Text;
             string nif = fiscalNumberTextBox.Text;
             try
             {
                 patientList = FinalDB.GetPatients(nome, morada, contacto, email,
-                    numeroUtente, subSistema, dataNascimento, profissao, nif);
+                    numeroUtente, subSistema, numeroSubSistema, dataNascimento, profissao, nif);
                 if (patientList.Count > 0)
                 {
                     Patient patient;
@@ -68,6 +76,7 @@ namespace MedicalAdministrationApp
                         patientsListView.Items[i].SubItems.Add(patient.Contacto.ToString());
                         patientsListView.Items[i].SubItems.Add(patient.Email.ToString());
                         patientsListView.Items[i].SubItems.Add(patient.SubSistema.ToString());
+                        patientsListView.Items[i].SubItems.Add(patient.NumSubSistema.ToString());
                         patientsListView.Items[i].SubItems.Add(patient.DataNascimento.ToString());
                         patientsListView.Items[i].SubItems.Add(patient.Profissao.ToString());
                         patientsListView.Items[i].SubItems.Add(patient.NIF.ToString());
@@ -87,19 +96,19 @@ namespace MedicalAdministrationApp
             string morada = addressTextBox.Text;
             string contacto = contactTextBox.Text;
             string email = emailTextBox.Text;
-            int numeroUtente = Convert.ToInt32(healthCareNumberTextBox.Text);
+            string numeroUtente = healthCareNumberTextBox.Text;
             string subSistema = healthCareSystemComboBox.Text;
+            string numeroSubSistema = healthCareSystemNumberTextBox.Text;
             DateTime dataNascimento = birthDatePicker.Value.Date;
             string profissao = jobTextBox.Text;
             int nif = Convert.ToInt32(fiscalNumberTextBox.Text);
             FinalDB.UpdateClient(nome, morada, contacto, email,
-                numeroUtente, subSistema, dataNascimento, profissao, nif);
+                numeroUtente, subSistema, numeroSubSistema, dataNascimento, profissao, nif);
         }
 
         private void patientsListView_SelectedIndexChanged(object sender, EventArgs e)
         {
             ListView.SelectedListViewItemCollection patientInfo = patientsListView.SelectedItems;
-            Debug.WriteLine(patientInfo.Count);
             int lastIndex = patientInfo.Count - 1;
             if (lastIndex >= 0)
             {
@@ -109,19 +118,40 @@ namespace MedicalAdministrationApp
                 string contacto = patientInfo[lastIndex].SubItems[3].Text;
                 string email = patientInfo[lastIndex].SubItems[4].Text;
                 string subSistema = patientInfo[lastIndex].SubItems[5].Text;
-                DateTime dataNascimento = Convert.ToDateTime(patientInfo[lastIndex].SubItems[6].Text);
-                string profissao = patientInfo[lastIndex].SubItems[7].Text;
-                string nif = patientInfo[lastIndex].SubItems[8].Text;
+                string numSubSistema = patientInfo[lastIndex].SubItems[6].Text;
+                string dataNascimento = patientInfo[lastIndex].SubItems[7].Text;
+                string profissao = patientInfo[lastIndex].SubItems[8].Text;
+                string nif = patientInfo[lastIndex].SubItems[9].Text;
                 nameTextBox.Text = nome;
                 addressTextBox.Text = morada;
                 contactTextBox.Text = contacto;
                 emailTextBox.Text = email;
                 healthCareNumberTextBox.Text = numeroUtente;
                 healthCareSystemComboBox.Text = subSistema;
-                birthDatePicker.Value = dataNascimento;
+                healthCareSystemNumberTextBox.Text = numSubSistema;
+                if (dataNascimento.Equals(""))
+                {
+                    birthDatePicker.Value = birthDatePicker.MinDate;
+                    birthDatePicker.CustomFormat = " ";
+                }
+                else
+                {
+                    birthDatePicker.Value = Convert.ToDateTime(dataNascimento);
+                    birthDatePicker.CustomFormat = "dd/MMMM/yyyy";
+                }
                 jobTextBox.Text = profissao;
                 fiscalNumberTextBox.Text = nif;
             }
+        }
+
+        private void birthDatePicker_ValueChanged(Object sender, EventArgs e)
+        {
+            birthDatePicker.CustomFormat = "dd/MMMM/yyyy";
+        }
+
+        private void setAppointmentButton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
